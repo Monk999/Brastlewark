@@ -9,7 +9,7 @@ import UIKit
 
 class PopulationListViewController: UITableViewController {
 
-    
+    private var isFirstViewAppear  = true
     var population:[HabitantDataModel] = []
     
     var viewModel:PopulationListViewModel!{
@@ -22,20 +22,29 @@ class PopulationListViewController: UITableViewController {
             
             viewModel.fetchFailedCallBack = { [unowned self] viewModel in
                 self.showAlert(title: "An error ocurred try again!")
+                refreshControl?.endRefreshing()
+
             }
         }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         refreshControl = UIRefreshControl()
-        
         refreshControl?.addTarget(self, action: #selector(self.refresh(_:)), for: .valueChanged)
-                
-        refresh(nil)
     }
     
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    
+        if (isFirstViewAppear){
+            refresh(nil)
+            isFirstViewAppear = false
+        }
+    }
+    
+   
     @objc func refresh(_ sender: AnyObject?){
         refreshControl?.beginRefreshing()
         viewModel.fetchPopulation()
@@ -44,7 +53,8 @@ class PopulationListViewController: UITableViewController {
     
     func showAlert(title:String){
         let alert  = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-        alert.show(self, sender: nil)
+        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
